@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>KaakaoBuilder — Builder</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+    :root {
+      --bg1: #4b2c20;
+      --bg2: #2b170d;
+      --accent: #e68a2e;
+      --accent-2: #f5c16c;
+      --card: rgba(255,255,255,0.06);
+      --muted: #f5e0d0;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: white;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 18px 26px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      background: rgba(0,0,0,0.12);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    }
+
+    .brand { display:flex; gap:12px; align-items:center; text-decoration:none; color:inherit; }
+    .brand .logo {
+      width:44px;height:44px;border-radius:10px;background:linear-gradient(180deg,var(--bg2),#3f2418);display:flex;align-items:center;justify-content:center;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    }
+    .brand h1 { font-size:18px; margin:0; }
+    .brand p { margin:0; font-size:12px; color:var(--muted); }
+
+    main { display:flex; gap:18px; padding:20px; flex:1; max-width:1200px; margin:20px auto; width:calc(100% - 40px); }
+
+    /* Sidebar projects */
+    .sidebar {
+      width:300px;
+      min-width:220px;
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:16px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .sidebar h2 { margin:0 0 6px 0; font-size:16px; }
+    .new-btn {
+      background: linear-gradient(90deg,var(--accent-2),var(--accent));
+      border: none; color: #2b170d; padding:10px 12px; border-radius:10px; font-weight:700; cursor:pointer;
+    }
+    .proj-list { overflow:auto; max-height:56vh; padding-right:6px; }
+    .proj-item {
+      background: rgba(255,255,255,0.02);
+      padding:10px;
+      border-radius:10px;
+      margin-bottom:8px;
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+    }
+    .proj-item .meta { overflow:hidden; text-align:left; }
+    .proj-item .meta strong { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--accent-2); }
+    .proj-item .meta small { display:block; color:var(--muted); font-size:12px; }
+
+    .proj-actions button { background:transparent; border:0; color:var(--muted); cursor:pointer; padding:6px; border-radius:8px; }
+    .proj-actions button:hover { background: rgba(255,255,255,0.03); }
+
+    /* Editor */
+    .editor {
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .editor .top {
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    .editor .title {
+      font-weight:700;
+      font-size:18px;
+      color:var(--accent-2);
+    }
+    .controls { margin-left:auto; display:flex; gap:8px; align-items:center; }
+    .controls button { background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--muted); padding:8px 10px; border-radius:10px; cursor:pointer; }
+    .controls button.primary { background: linear-gradient(90deg,var(--accent-2),var(--accent)); color:#2b170d; border:0; font-weight:700; }
+
+    .panel {
+      display:grid;
+      grid-template-columns: 1fr 420px;
+      gap:12px;
+      min-height:60vh;
+    }
+
+    .code-card, .preview-card {
+      background:var(--card);
+      padding:12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.03);
+    }
+    .tabs { display:flex; gap:8px; margin-bottom:10px; }
+    .tab { padding:8px 12px; border-radius:10px; background:transparent; color:var(--muted); cursor:pointer; border:1px solid transparent; }
+    .tab.active { background: rgba(255,255,255,0.03); color:var(--accent-2); border:1px solid rgba(255,255,255,0.04); }
+
+    textarea.editor-area {
+      width:100%;
+      height: calc(60vh - 80px);
+      background: rgba(0,0,0,0.05);
+      color: #fff;
+      padding:12px;
+      border-radius:8px;
+      resize:vertical;
+      border:1px solid rgba(0,0,0,0.15);
+      font-family: monospace;
+      font-size:13px;
+    }
+
+    .preview-card iframe {
+      width:100%;
+      height:calc(60vh - 36px);
+      border-radius:8px;
+      border:0;
+      background:white;
+    }
+
+    .muted { color:var(--muted); font-size:13px; }
+
+    .small { font-size:13px; color:var(--muted); }
+
+    /* Responsive */
+    @media (max-width:1000px){
+      main { padding:12px; }
+      .panel { grid-template-columns: 1fr; }
+      .sidebar { display:none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="index.html" class="brand" style="text-decoration:none;color:inherit;">
+      <div class="logo" aria-hidden>
+        <!-- simple cloud/chocolate svg -->
+        <svg width="28" height="28" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="#f5c16c">
+          <path d="M20 44c0-6.627 5.373-12 12-12 6.627 0 12 5.373 12 12" />
+          <path d="M18 36c0-6.627 5.373-12 12-12 3.314 0 6.314 1.25 8.627 3.28C41.657 24.56 44.522 23 48 23c4.97 0 9 4.03 9 9 0 .33-.017.658-.05.984A9 9 0 0 1 66 44H18z" transform="translate(-8 -6)" fill="#5A3E2B" opacity="0.95"/>
+        </svg>
+      </div>
+      <div>
+        <h1>KaakaoBuilder</h1>
+        <p class="small">Makein tapa tehdä nettisivu.</p>
+      </div>
+    </a>
+
+    <div style="display:flex;gap:10px;align-items:center;">
+      <a href="index.html" class="small" style="color:var(--muted);text-decoration:none;">Etusivu</a>
+      <a href="#" id="helpBtn" class="small" style="color:var(--muted);text-decoration:none;margin-left:8px;">Ohje</a>
+    </div>
+  </header>
+
+  <main>
+    <aside class="sidebar">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h2>Projektit</h2>
+        <button id="newProject" class="new-btn" title="Uusi projekti">+ Uusi</button>
+      </div>
+
+      <div class="proj-list" id="projList" aria-live="polite"></div>
+
+      <div style="margin-top:auto">
+        <p class="small">Tallennukset säilyy selainkohtaisesti (localStorage).</p>
+      </div>
+    </aside>
+
+    <section class="editor">
+      <div class="top">
+        <div class="title" id="currentTitle">Valitse tai luo projekti</div>
+        <div class="controls">
+          <button id="renameBtn">Nimeä</button>
+          <button id="deleteBtn">Poista</button>
+          <button id="openBtn" class="primary">Avaa sivuna</button>
+          <button id="saveBtn" class="primary">Tallenna</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="code-card">
+          <div class="tabs" role="tablist">
+            <div class="tab active" data-tab="html">HTML</div>
+            <div class="tab" data-tab="css">CSS</div>
+            <div class="tab" data-tab="meta">Asetukset</div>
+          </div>
+
+          <div id="editorArea">
+            <textarea id="htmlEditor" class="editor-area" placeholder="Kirjoita HTML tässä..."></textarea>
+            <textarea id="cssEditor" class="editor-area" style="display:none" placeholder="Kirjoita CSS tässä..."></textarea>
+
+            <div id="metaPanel" style="display:none">
+              <label class="small">Projektin nimi</label><br>
+              <input id="projNameInput" style="width:100%;padding:8px;border-radius:8px;margin:8px 0;border:1px solid rgba(255,255,255,0.04);background:transparent;color:white"><br>
+              <label class="small">Käytä Kaakao-teemaa</label><br>
+              <select id="themeSelect" style="width:100%;padding:8px;border-radius:8px;margin:8px 0;background:transparent;color:white;border:1px solid rgba(255,255,255,0.04);">
+                <option value="kaakao">Kaakao (oletus)</option>
+                <option value="light">Vaalea</option>
+                <option value="simple">Yksinkertainen</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="preview-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div class="small">Esikatselu</div>
+            <div class="small muted">Paina <strong>Tallenna</strong> nähdäksesi tallennetun sivun</div>
+          </div>
+          <iframe id="previewFrame" sandbox="allow-popups allow-scripts allow-same-origin"></iframe>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // --- helperit ---
+    const STORAGE_KEY = 'kaakaobuilder_projects_v1';
+
+    function uid() { return 'p_' + Math.random().toString(36).slice(2,9); }
+
+    function loadProjects() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return [];
+      try { return JSON.parse(raw) } catch(e) { return []; }
+    }
+    function saveProjects(list) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    }
+
+    // default templates
+    const defaultHTML = (title="Oma sivu") => `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>${title}</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header style="text-align:center;padding:40px 20px;">
+    <h1>${title}</h1>
+    <p>Tervetuloa KaakaoBuilderilla luotuun sivuun.</p>
+  </header>
+
+  <main style="padding:20px;">
+    <section>
+      <p>Muokkaa tätä tekstia editorissa.</p>
+    </section>
+  </main>
+</body>
+</html>`;
+
+    const themes = {
+      kaakao: `:root{--bg:#4b2c20;--accent:#e68a2e;--muted:#f5e0d0}
+body{font-family:system-ui,Arial,Helvetica,sans-serif;background:linear-gradient(135deg,var(--bg),#2b170d);color:var(--muted);margin:0}
+header{padding:32px;text-align:center}
+h1{color:var(--accent);margin:0}
+p{opacity:0.95}`,
+      light: `body{font-family:system-ui,Arial,Helvetica,sans-serif;background:#fff;color:#222;margin:0}header{padding:32px;text-align:center}h1{color:#333;margin:0}p{opacity:0.9}`,
+      simple: `body{font-family:system-ui,Arial,Helvetica,sans-serif;background:#f7f7f7;color:#222;margin:0}header{padding:20px;text-align:center}h1{color:#333;margin:0}`
+    };
+
+    // state
+    let projects = loadProjects();
+    let currentId = null;
+    let currentTab = 'html';
+
+    // elements
+    const projListEl = document.getElementById('projList');
+    const newBtn = document.getElementById('newProject');
+    const titleEl = document.getElementById('currentTitle');
+    const htmlEditor = document.getElementById('htmlEditor');
+    const cssEditor = document.getElementById('cssEditor');
+    const saveBtn = document.getElementById('saveBtn');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const renameBtn = document.getElementById('renameBtn');
+    const openBtn = document.getElementById('openBtn');
+    const previewFrame = document.getElementById('previewFrame');
+    const tabs = document.querySelectorAll('.tab');
+    const projNameInput = document.getElementById('projNameInput');
+    const themeSelect = document.getElementById('themeSelect');
+
+    // init
+    function renderProjectList(){
+      projListEl.innerHTML = '';
+      if (projects.length === 0) {
+        projListEl.innerHTML = '<p class="small" style="padding:8px">Ei projekteja — luo uusi napista + Uusi</p>';
+        return;
+      }
+      projects.slice().reverse().forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'proj-item';
+        div.innerHTML = `
+          <div class="meta">
+            <strong title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</strong>
+            <small>${new Date(p.created).toLocaleString()}</small>
+          </div>
+          <div class="proj-actions">
+            <button data-action="open" title="Avaa">▶</button>
+            <button data-action="edit" title="Muokkaa">✎</button>
+            <button data-action="delete" title="Poista">🗑</button>
+          </div>`;
+        projListEl.appendChild(div);
+
+        // handlers
+        div.querySelector('[data-action="open"]').addEventListener('click', ()=> openProjectInNewTab(p.id));
+        div.querySelector('[data-action="edit"]').addEventListener('click', ()=> loadProject(p.id));
+        div.querySelector('[data-action="delete"]').addEventListener('click', ()=> {
+          if (!confirm('Poistetaanko projekti "' + p.name + '"?')) return;
+          projects = projects.filter(x => x.id !== p.id);
+          saveProjects(projects);
+          if (currentId === p.id) clearEditor();
+          renderProjectList();
+        });
+      });
+    }
+
+    function createNewProject(){
+      const name = prompt('Anna projektille nimi', 'Uusi projekti');
+      if (!name) return;
+      const id = uid();
+      const project = {
+        id,
+        name: name.trim(),
+        html: defaultHTML(name.trim()),
+        css: themes.kaakao,
+        created: Date.now()
+      };
+      projects.push(project);
+      saveProjects(projects);
+      renderProjectList();
+      loadProject(id);
+    }
+
+    function loadProject(id){
+      const p = projects.find(x=>x.id===id);
+      if (!p) return alert('Projekti ei löydy');
+      currentId = id;
+      titleEl.textContent = p.name;
+      htmlEditor.value = p.html;
+      cssEditor.value = p.css || '';
+      projNameInput.value = p.name;
+      // infer theme select
+      if (p.css && p.css.includes('--bg')) themeSelect.value = 'kaakao';
+      else themeSelect.value = 'simple';
+      renderTabs();
+      renderPreviewLive();
+    }
+
+    function saveCurrent(){
+      if (!currentId) return alert('Ei aktiivista projektia — luo uusi ensin.');
+      const p = projects.find(x=>x.id===currentId);
+      if (!p) return alert('Projekti ei löydy');
+      p.html = htmlEditor.value;
+      p.css = cssEditor.value;
+      p.name = projNameInput.value.trim() || p.name;
+      saveProjects(projects);
+      renderProjectList();
+      alert('Tallennettu!');
+    }
+
+    function clearEditor(){
+      currentId = null;
+      titleEl.textContent = 'Valitse tai luo projekti';
+      htmlEditor.value = '';
+      cssEditor.value = '';
+      projNameInput.value = '';
+      previewFrame.srcdoc = '<!doctype html><html><body></body></html>';
+    }
+
+    function renderTabs(){
+      tabs.forEach(t => {
+        if (t.dataset.tab === currentTab) t.classList.add('active'); else t.classList.remove('active');
+      });
+      if (currentTab === 'html'){
+        htmlEditor.style.display = 'block';
+        cssEditor.style.display = 'none';
+        document.getElementById('metaPanel').style.display = 'none';
+      } else if (currentTab === 'css'){
+        htmlEditor.style.display = 'none';
+        cssEditor.style.display = 'block';
+        document.getElementById('metaPanel').style.display = 'none';
+      } else {
+        htmlEditor.style.display = 'none';
+        cssEditor.style.display = 'none';
+        document.getElementById('metaPanel').style.display = 'block';
+      }
+    }
+
+    function openProjectInNewTab(id){
+      const p = projects.find(x=>x.id===id);
+      if (!p) return alert('Ei löydy');
+      // Build full HTML combining CSS and HTML; if HTML already links style.css it's fine - we'll inline CSS for portability
+      const combined = inlineCSS(p.html, p.css);
+      // Open in new tab as blob
+      const blob = new Blob([combined], {type: 'text/html'});
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(()=> URL.revokeObjectURL(url), 60000);
+    }
+
+    function inlineCSS(html, css){
+      // if html already has <head> we inject <style> into it; otherwise wrap
+      if (/<head[^>]*>/i.test(html)){
+        return html.replace(/<head([^>]*)>/i, `<head$1><style>${css}</style>`);
+      } else {
+        return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style></head><body>${html}</body></html>`;
+      }
+    }
+
+    function renderPreviewLive(){
+      const html = htmlEditor.value || '<!doctype html><html><body></body></html>';
+      const css = cssEditor.value || '';
+      const doc = inlineCSS(html, css);
+      previewFrame.srcdoc = doc;
+    }
+
+    // utils
+    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m] }); }
+
+    // events
+    newBtn.addEventListener('click', createNewProject);
+    saveBtn.addEventListener('click', saveCurrent);
+    deleteBtn.addEventListener('click', ()=> {
+      if (!currentId) return alert('Ei aktiivista projektia.');
+      if (!confirm('Poistetaanko tämä projekti?')) return;
+      projects = projects.filter(x=>x.id!==currentId);
+      saveProjects(projects);
+      clearEditor();
+      renderProjectList();
+    });
+    renameBtn.addEventListener('click', ()=> {
+      if (!currentId) return alert('Ei aktiivista projektia.');
+      const newName = prompt('Anna uusi nimi', projects.find(p=>p.id===currentId).name);
+      if (!newName) return;
+      projects.find(p=>p.id===currentId).name = newName.trim();
+      saveProjects(projects);
+      renderProjectList();
+      titleEl.textContent = newName.trim();
+    });
+    openBtn.addEventListener('click', ()=> {
+      if (!currentId) return alert('Ei aktiivista projektia.');
+      openProjectInNewTab(currentId);
+    });
+
+    // tabs click
+    tabs.forEach(t => t.addEventListener('click', ()=> {
+      currentTab = t.dataset.tab;
+      renderTabs();
+    }));
+
+    // editor live preview throttled
+    let timer = null;
+    htmlEditor.addEventListener('input', ()=> {
+      clearTimeout(timer);
+      timer = setTimeout(renderPreviewLive, 250);
+    });
+    cssEditor.addEventListener('input', ()=> {
+      clearTimeout(timer);
+      timer = setTimeout(renderPreviewLive, 250);
+    });
+
+    // meta apply
+    projNameInput.addEventListener('change', ()=> {
+      if (!currentId) return;
+      projects.find(p=>p.id===currentId).name = projNameInput.value.trim() || projects.find(p=>p.id===currentId).name;
+      saveProjects(projects);
+      renderProjectList();
+    });
+    themeSelect.addEventListener('change', ()=> {
+      if (!currentId) return;
+      const t = themeSelect.value;
+      projects.find(p=>p.id===currentId).css = themes[t] || '';
+      cssEditor.value = projects.find(p=>p.id===currentId).css;
+      saveProjects(projects);
+      renderPreviewLive();
+    });
+
+    // keyboard shortcut: Ctrl/Cmd+S to save
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        saveCurrent();
+      }
+    });
+
+    // initial render
+    renderProjectList();
+
+    // load first project if exists
+    if (projects.length) loadProject(projects[0].id);
+
+    // help
+    document.getElementById('helpBtn').addEventListener('click', ()=> {
+      alert('Ohje:\n\n• Uusi: luo projekti (oletus Kaakao-teema)\n• Valitse projekti listasta ja muokkaa HTML/CSS\n• Tallenna tallentaaksesi localStorageen (Ctrl/Cmd+S)\n• Avaa sivuna avaa projektin uuteen välilehteen\n• Projekti tallentuu selaimeesi paikallisesti (täytyy exportata/siirtää manuaalisesti julkaisua varten)');
+    });
+
+    // end
+  </script>
+</body>
+</html>
