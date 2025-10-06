@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>KaakaoBuilder – Drag & Drop</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+    :root {
+      --bg1: #4b2c20;
+      --bg2: #2b170d;
+      --accent: #e68a2e;
+      --accent-2: #f5c16c;
+      --card: rgba(255,255,255,0.08);
+      --muted: #f5e0d0;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: white;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background: rgba(0,0,0,0.15);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand h1 { font-size: 18px; margin: 0; }
+    .brand p { margin: 0; font-size: 12px; color: var(--muted); }
+
+    main {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      flex: 1;
+    }
+
+    aside {
+      background: var(--card);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-right: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .tool {
+      padding: 10px;
+      background: rgba(255,255,255,0.05);
+      border-radius: var(--radius);
+      cursor: grab;
+      text-align: center;
+      user-select: none;
+    }
+
+    .canvas {
+      flex: 1;
+      padding: 20px;
+      overflow: auto;
+      background: #fff;
+      border-radius: var(--radius);
+      margin: 10px;
+      position: relative;
+      color: black;
+    }
+
+    .canvas .drop-target {
+      min-height: 400px;
+      border: 2px dashed #ccc;
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+    }
+
+    .element {
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 6px;
+      padding: 8px;
+      margin: 5px;
+      background: #fafafa;
+      cursor: move;
+    }
+
+    footer {
+      background: rgba(0,0,0,0.15);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .save-btn {
+      background: linear-gradient(90deg, var(--accent-2), var(--accent));
+      color: #2b170d;
+    }
+
+    .muted { color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="index.html" class="brand">
+      <div>
+        <h1>KaakaoBuilder DnD</h1>
+        <p>Raahaa elementtejä ja rakenna sivu visuaalisesti.</p>
+      </div>
+    </a>
+    <div style="display:flex;gap:10px;">
+      <a href="builder.html" style="color:var(--muted);text-decoration:none;">Koodieditori</a>
+      <button id="saveBtn" class="save-btn">💾 Tallenna</button>
+    </div>
+  </header>
+
+  <main>
+    <aside>
+      <h3 style="margin:0;">Elementit</h3>
+      <div class="tool" draggable="true" data-type="h1">Otsikko (H1)</div>
+      <div class="tool" draggable="true" data-type="p">Teksti</div>
+      <div class="tool" draggable="true" data-type="button">Painike</div>
+      <div class="tool" draggable="true" data-type="img">Kuva</div>
+      <div class="tool" draggable="true" data-type="div">Laatikko</div>
+    </aside>
+
+    <div class="canvas">
+      <div class="drop-target" id="dropZone">Raahaa elementtejä tähän</div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="muted">KaakaoBuilder Drag & Drop v1</div>
+    <button id="clearBtn">Tyhjennä</button>
+  </footer>
+
+  <script>
+    const STORAGE_KEY = 'kaakaobuilder_projects_v1';
+    let projects = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    let currentId = localStorage.getItem('kaakao_current_project') || null;
+
+    const dropZone = document.getElementById("dropZone");
+
+    // --- Lataa projektin sisältö ---
+    let project = null;
+    if (currentId) {
+      project = projects.find(p => p.id === currentId);
+      if (project && project.html.includes("<body")) {
+        const temp = document.createElement("div");
+        temp.innerHTML = project.html;
+        const body = temp.querySelector("body");
+        if (body) dropZone.innerHTML = body.innerHTML;
+      }
+    }
+
+    // --- Drag & Drop logiikka ---
+    let draggedType = null;
+
+    document.querySelectorAll(".tool").forEach(tool => {
+      tool.addEventListener("dragstart", e => {
+        draggedType = tool.dataset.type;
+      });
+    });
+
+    dropZone.addEventListener("dragover", e => {
+      e.preventDefault();
+    });
+
+    dropZone.addEventListener("drop", e => {
+      e.preventDefault();
+      if (!draggedType) return;
+      const el = createElement(draggedType);
+      dropZone.appendChild(el);
+      draggedType = null;
+    });
+
+    function createElement(type) {
+      const el = document.createElement("div");
+      el.className = "element";
+      el.contentEditable = true;
+
+      switch(type) {
+        case "h1": el.innerHTML = "<h1>Otsikko</h1>"; break;
+        case "p": el.innerHTML = "<p>Tekstikappale</p>"; break;
+        case "button": el.innerHTML = "<button>Painike</button>"; break;
+        case "img": el.innerHTML = "<img src='https://placehold.co/200x120' alt='Kuva'>"; break;
+        case "div": el.innerHTML = "<div style='padding:20px;background:#eee;'>Laatikko</div>"; break;
+      }
+
+      el.draggable = true;
+      el.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", ""));
+      return el;
+    }
+
+    // --- Tallennus ---
+    document.getElementById("saveBtn").addEventListener("click", () => {
+      if (!currentId) return alert("Avaa projekti koodieditorissa ensin.");
+      const html = `
+<!doctype html><html><head><meta charset="utf-8"><title>${project.name}</title>
+<link rel="stylesheet" href="style.css"></head><body>${dropZone.innerHTML}</body></html>`;
+      project.html = html;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+      alert("Tallennettu!");
+    });
+
+    // --- Tyhjennä ---
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      if (confirm("Tyhjennetäänkö kaikki elementit?")) {
+        dropZone.innerHTML = "Raahaa elementtejä tähän";
+      }
+    });
+  </script>
+</body>
+</html>
