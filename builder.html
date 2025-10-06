@@ -303,40 +303,52 @@ p{opacity:0.95}`,
     const projNameInput = document.getElementById('projNameInput');
     const themeSelect = document.getElementById('themeSelect');
 
-    // init
-    function renderProjectList(){
-      projListEl.innerHTML = '';
-      if (projects.length === 0) {
-        projListEl.innerHTML = '<p class="small" style="padding:8px">Ei projekteja — luo uusi napista + Uusi</p>';
-        return;
-      }
-      projects.slice().reverse().forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'proj-item';
-        div.innerHTML = `
-          <div class="meta">
-            <strong title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</strong>
-            <small>${new Date(p.created).toLocaleString()}</small>
-          </div>
-          <div class="proj-actions">
-            <button data-action="open" title="Avaa">▶</button>
-            <button data-action="edit" title="Muokkaa">✎</button>
-            <button data-action="delete" title="Poista">🗑</button>
-          </div>`;
-        projListEl.appendChild(div);
+function renderProjectList(){
+  projListEl.innerHTML = '';
+  if (projects.length === 0) {
+    projListEl.innerHTML = '<p class="small" style="padding:8px">Ei projekteja — luo uusi napista + Uusi</p>';
+    return;
+  }
+  projects.slice().reverse().forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'proj-item';
+    div.innerHTML = `
+      <div class="meta">
+        <strong title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</strong>
+        <small>${new Date(p.created).toLocaleString()}</small>
+      </div>
+      <div class="proj-actions">
+        <button data-action="open" title="Avaa sivuna">▶</button>
+        <button data-action="edit" title="Muokkaa koodina">✎</button>
+        <button data-action="dnd" title="Muokkaa drag & drop -tilassa">🎨</button>
+        <button data-action="delete" title="Poista">🗑</button>
+      </div>`;
+    projListEl.appendChild(div);
 
-        // handlers
-        div.querySelector('[data-action="open"]').addEventListener('click', ()=> openProjectInNewTab(p.id));
-        div.querySelector('[data-action="edit"]').addEventListener('click', ()=> loadProject(p.id));
-        div.querySelector('[data-action="delete"]').addEventListener('click', ()=> {
-          if (!confirm('Poistetaanko projekti "' + p.name + '"?')) return;
-          projects = projects.filter(x => x.id !== p.id);
-          saveProjects(projects);
-          if (currentId === p.id) clearEditor();
-          renderProjectList();
-        });
-      });
-    }
+    // avaa sivuna
+    div.querySelector('[data-action="open"]').addEventListener('click', ()=> openProjectInNewTab(p.id));
+
+    // muokkaa normaalisti
+    div.querySelector('[data-action="edit"]').addEventListener('click', ()=> loadProject(p.id));
+
+    // uusi drag & drop -muokkaus
+    div.querySelector('[data-action="dnd"]').addEventListener('click', ()=> {
+      localStorage.setItem('kaakao_current_project', p.id);
+      alert(`Avaa dragndrop.html — projekti "${p.name}" valmiina muokattavaksi.`);
+      window.open('dragndrop.html', '_blank');
+    });
+
+    // poista
+    div.querySelector('[data-action="delete"]').addEventListener('click', ()=> {
+      if (!confirm('Poistetaanko projekti "' + p.name + '"?')) return;
+      projects = projects.filter(x => x.id !== p.id);
+      saveProjects(projects);
+      if (currentId === p.id) clearEditor();
+      renderProjectList();
+    });
+  });
+}
+
 
     function createNewProject(){
       const name = prompt('Anna projektille nimi', 'Uusi projekti');
