@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KaakaoBuilder – Dokumentaatio</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #1b1a1a;
+      color: #f5f5f5;
+      margin: 0;
+      line-height: 1.6;
+    }
+    header {
+      background: linear-gradient(90deg, #4e2d15, #3b1f0f);
+      padding: 1.2em 2em;
+      text-align: center;
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2em;
+    }
+    main {
+      max-width: 900px;
+      margin: 2em auto;
+      background: #2b2a2a;
+      padding: 2em;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.4);
+    }
+    h2 {
+      color: #f0c88c;
+      border-bottom: 2px solid #4e2d15;
+      padding-bottom: 0.3em;
+    }
+    pre {
+      background: #1f1f1f;
+      color: #e0e0e0;
+      padding: 1em;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    code {
+      background: #2d2d2d;
+      padding: 0.2em 0.4em;
+      border-radius: 4px;
+      font-family: monospace;
+      color: #ffcc88;
+    }
+    ul {
+      margin-left: 1.5em;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 3em;
+      color: #a0a0a0;
+      font-size: 0.9em;
+    }
+    a {
+      color: #f0c88c;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🍫 KaakaoBuilder – Dokumentaatio</h1>
+    <p>Makein tapa tehdä nettisivu selaimessa</p>
+  </header>
+
+  <main>
+    <h2>🚀 Ominaisuudet</h2>
+    <ul>
+      <li>Paikallinen tallennus (localStorage)</li>
+      <li>Moniprojekti-tuki</li>
+      <li>Koodi-editori HTML + CSS</li>
+      <li>Teemavaihtoehdot: Kaakao, Vaalea, Yksinkertainen</li>
+      <li>Drag & Drop -muokkaus</li>
+      <li>Offline-käyttö</li>
+    </ul>
+
+    <h2>📁 Rakenne</h2>
+    <pre><code>/
+├── index.html          ← Pääsivu / builder
+├── dragndrop.html      ← Visuaalinen editori
+├── documentation.html  ← Tämä dokumentaatio
+└── static/             ← Teemat, kuvat ym.
+</code></pre>
+
+    <h2>💡 Käyttöohje</h2>
+    <ol>
+      <li>Avaa <code>index.html</code> selaimessa</li>
+      <li>Luo uusi projekti</li>
+      <li>Muokkaa koodia ja tallenna automaattisesti localStorageen</li>
+      <li>Siirry visuaaliseen muokkaukseen painamalla 🎨-painiketta</li>
+    </ol>
+
+    <h2>⚙️ Tallennusrakenne (localStorage)</h2>
+    <pre><code>{
+  "id": "p_8fs91jd",
+  "name": "Oma sivu",
+  "html": "&lt;!doctype html&gt;&lt;html&gt;...&lt;/html&gt;",
+  "css": "body{...}",
+  "created": 1728217382000
+}</code></pre>
+
+    <h2>🎨 Drag & Drop -tila</h2>
+    <p>Kun avaat projektin <b>🎨 (drag & drop)</b> -painikkeella, builder tallentaa avaimen:</p>
+    <pre><code>localStorage.setItem('kaakao_current_project', projectId);</code></pre>
+    <p><code>dragndrop.html</code> osaa automaattisesti hakea tämän projektin muokattavaksi.</p>
+
+    <h2>📦 Yhteenveto</h2>
+    <p>
+      KaakaoBuilder on yksinkertainen mutta tehokas web-builderi, joka toimii täysin selaimessa.  
+      Se on täydellinen kevyisiin projekteihin, demoihin ja oppimiseen — ilman backend-palvelinta.
+    </p>
+  </main>
+
+  <div class="footer">
+    <p>© 2025 KaakaoBuilder. Rakennettu makeudella 🍫</p>
+  </div>
+</body>
+</html>
